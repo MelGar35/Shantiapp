@@ -45,7 +45,7 @@ export default async function ProductPage({ params }: Props) {
             {product.description}
           </p>
 
-          <QuantitySelector price={product.price} stock={product.stock} />
+          <QuantitySelector product={product} />
         </div>
       </div>
     </main>
