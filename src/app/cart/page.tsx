@@ -1,11 +1,44 @@
 'use client'
 import { useCart } from '@/context/CartContext'
 import Link from 'next/link'
-import { useIsMounted } from '@/hooks/useIsMounted' // Importamos el hook
+import { useIsMounted } from '@/hooks/useIsMounted'
+import Image from 'next/image'
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart()
   const isMounted = useIsMounted() // Usamos el hook aquí
+
+  const handleCheckout = async () => {
+    try {
+      // 1. Preparamos los productos para Mercado Pago
+      const items = cart.map(item => ({
+        id: item._id,
+        title: item.name,
+        unit_price: item.price,
+        quantity: item.quantity,
+        currency_id: "ARS"
+      }));
+
+      // 2. Llamamos a nuestra API (que crearemos en el siguiente paso)
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+
+      const data = await response.json();
+
+      // 3. Si la API nos devuelve un ID, redirigimos al usuario
+      if (data.id) {
+        window.location.href = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${data.id}`;
+      } else {
+        throw new Error("No se pudo obtener el ID de la preferencia");
+      }
+    } catch (error) {
+      console.error("Error en el checkout:", error);
+      alert("Hubo un problema al conectar con Mercado Pago. Reintentá en unos minutos 🌿");
+    }
+  }
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
 
@@ -27,7 +60,6 @@ export default function CartPage() {
     )
   }
 
-  // Carrito con productos
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-12 text-slate-900">
       <div className="max-w-4xl mx-auto">
@@ -39,9 +71,19 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div key={item._id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover border" />
                 
-                <div className="flex-grow">
+                {/* IMAGEN OPTIMIZADA: Contenedor relativo + Image fill */}
+                <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl border border-slate-100">
+                  <Image 
+                    src={item.image} 
+                    alt={item.name} 
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
+                </div>
+                
+                <div className="grow">
                   <h2 className="font-bold text-slate-800 text-lg">{item.name}</h2>
                   <p className="text-emerald-600 font-black">${item.price.toLocaleString('es-AR')}</p>
                   
@@ -72,18 +114,24 @@ export default function CartPage() {
           {/* LADO DERECHO: Resumen de pago */}
           <div className="lg:col-span-1">
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 sticky top-24">
-              <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-4">Resumen</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-4 tracking-tighter">Resumen</h2>
               
               <div className="flex justify-between items-center mb-8">
                 <span className="text-slate-500 font-medium text-lg">Total:</span>
                 <span className="text-3xl font-black text-slate-900">${total.toLocaleString('es-AR')}</span>
               </div>
 
-              <button className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-lg active:scale-95 uppercase tracking-widest">
-                FINALIZAR COMPRA
-              </button>
+              {/* BOTÓN ACHICADO Y CENTRADO: Quité el w-full y agregué flex justify-center */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={handleCheckout}
+                  className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-sm hover:bg-emerald-600 transition-all shadow-xl active:scale-95 uppercase tracking-[0.1em]"
+                >
+                  Finalizar Compra
+                </button>
+              </div>
               
-              <Link href="/" className="block text-center mt-6 text-slate-400 font-bold text-sm hover:text-slate-900 transition-colors">
+              <Link href="/" className="block text-center mt-6 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-slate-900 transition-colors">
                 ← Seguir comprando
               </Link>
             </div>

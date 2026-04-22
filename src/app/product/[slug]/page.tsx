@@ -2,6 +2,7 @@ import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { notFound } from "next/navigation";
 import QuantitySelector from "@/components/QuantitySelector";
+import Image from "next/image";
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -21,33 +22,43 @@ export default async function ProductPage({ params }: Props) {
   const product = JSON.parse(JSON.stringify(productRaw));
 
   return (
-    <main className="min-h-screen bg-white p-6 md:p-12">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-        
-        {/* Lado Izquierdo: Galería/Imagen */}
-        <div className="rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
-          <img 
-            src={product.images[0]} 
-            alt={product.name} 
-            className="w-full h-auto object-cover"
-          />
-        </div>
+  <main className="min-h-screen bg-white p-6 md:p-12">
+  {/* Reduje el max-width a 4xl para que en desktop no se estire tanto */}
+  <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+    
+    {/* Lado Izquierdo: Imagen Optimizada con tamaño controlado */}
+    <div className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-slate-50 border border-slate-100 shadow-sm max-w-sm mx-auto md:max-w-none w-full">
+      <Image 
+        src={product.images[0]} 
+        alt={product.name} 
+        fill
+        priority
+        sizes="(max-width: 768px) 100vw, 400px"
+        className="object-cover"
+      />
+    </div>
 
-        {/* Lado Derecho: Info y Pago */}
-        <div className="flex flex-col justify-center">
-          <span className="text-emerald-600 font-bold uppercase tracking-widest text-sm mb-2">
-            {product.category}
-          </span>
-          <h1 className="text-5xl font-black text-slate-900 mb-4 leading-tight">
-            {product.name}
-          </h1>
-          <p className="text-slate-500 text-lg leading-relaxed mb-8">
-            {product.description}
-          </p>
+    {/* Lado Derecho: Info y Pago */}
+    <div className="flex flex-col">
+      <span className="text-emerald-600 font-black uppercase tracking-[0.2em] text-[13px] mb-3">
+        {product.category}
+      </span>
+      
+      {/* Bajé el tamaño de 5xl a 4xl para que sea más armónico */}
+      <h1 className="text-4xl font-black text-slate-900 mb-2 leading-tight tracking-tighter">
+        {product.name}
+      </h1>
+      
+      <p className="text-slate-500 text-base leading-relaxed mb-2 font-medium">
+        {product.description}
+      </p>
 
-          <QuantitySelector product={product} />
-        </div>
+      {/* Contenedor sutil para el selector de cantidad */}
+      <div className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+        <QuantitySelector product={product} />
       </div>
-    </main>
+    </div>
+  </div>
+</main>
   );
 }

@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function QuantitySelector({ product }: Props) {
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(0)
   const { addToCart } = useCart()
 
   // Verificamos que los datos existan para evitar errores visuales
@@ -21,9 +21,13 @@ export default function QuantitySelector({ product }: Props) {
   const currentStock = product?.stock || 0;
 
   const handleMore = () => quantity < currentStock && setQuantity(prev => prev + 1)
-  const handleLess = () => quantity > 1 && setQuantity(prev => prev - 1)
+  const handleLess = () => quantity > 0 && setQuantity(prev => prev - 1)
 
   const onAdd = () => {
+    if (quantity === 0) {
+    alert("Por favor, selecciona al menos 1 unidad para Shanti Shop 🌿");
+    return;
+  }
     addToCart({
       _id: product._id,
       name: product.name,
@@ -36,8 +40,8 @@ export default function QuantitySelector({ product }: Props) {
   }
 
   return (
-    <div className="mt-8 space-y-6">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col">
+      <div className="flex items-center gap-2">
         <span className="text-slate-900 font-bold text-base">Cantidad:</span>
         
         <div className="flex items-center border-2 border-slate-400 rounded-xl overflow-hidden bg-white shadow-sm">
@@ -49,7 +53,7 @@ export default function QuantitySelector({ product }: Props) {
             -
           </button>
           
-          <span className="px-6 py-2 font-black text-slate-900 text-lg min-w-[3.5rem] text-center bg-white">
+          <span className="px-6 py-2 font-black text-slate-900 text-lg min-w-14 text-center bg-white">
             {quantity}
           </span>
           
@@ -68,16 +72,16 @@ export default function QuantitySelector({ product }: Props) {
       </div>
 
       <div className="pt-6 border-t-2 border-slate-100">
-        <div className="flex justify-between items-end mb-6">
+        <div className="flex justify-between items-end mb-8">
           <span className="text-slate-600 font-bold text-lg tracking-tight">Total a pagar:</span>
-          <span className="text-4xl font-black text-slate-900 drop-shadow-sm">
+          <span className="text-3xl font-black text-slate-900 drop-shadow-sm">
             ${(currentPrice * quantity).toLocaleString('es-AR')}
           </span>
         </div>
         
         <button 
           onClick={onAdd}
-          className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-xl hover:bg-emerald-700 transition-all shadow-xl active:scale-95 uppercase tracking-widest"
+          className="w-full bg-slate-900 text-white py-3 rounded-2xl font-black text-l hover:bg-emerald-700 transition-all shadow-xl active:scale-95 uppercase tracking-widest"
         >
           AÑADIR AL CARRITO
         </button>
